@@ -1,5 +1,7 @@
-<% if !version.fixed_issues.empty? %>
-<fieldset id='target_version_graph'><legend><%= l(:label_graphs_total_vs_closed_issues) %></legend>
-  <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'target_version_graph', :id => version))%>
-</fieldset>
+<% if Setting.plugin_redmine_graphs[:total_vs_closed_issues_enabled] ? true : false %>
+  <% if !version.fixed_issues.empty? %>
+    <fieldset id='target_version_graph'><legend><%= l(:label_graphs_total_vs_closed_issues) %></legend>
+      <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'target_version_graph', :id => version))%>
+    </fieldset>
+  <% end %>
 <% end %>

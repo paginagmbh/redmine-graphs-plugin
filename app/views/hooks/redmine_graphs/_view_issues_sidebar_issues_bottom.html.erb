@@ -1,17 +1,40 @@
-<% if project.nil? %>
-  <h3><%= l(:label_graphs)%></h3>
-  <%= link_to(l(:label_graphs_old_issues), {:controller => 'graphs', :action => 'old_issues'}) %>
-  <br/>
-  <%= link_to(l(:label_graphs_issue_growth), {:controller => 'graphs', :action => 'issue_growth'}) %>
-  <br/>
-  <%= link_to(l(:label_graphs_bug_growth), {:controller => 'graphs', :action => 'bug_growth'}) %>
-  <br/>
-<% else %>
-  <h3><%= l(:label_graphs)%></h3>
-  <%= link_to(l(:label_graphs_old_issues), {:controller => 'graphs', :action => 'old_issues', :project_id => project}) %>
-  <br/>
-  <%= link_to(l(:label_graphs_issue_growth), {:controller => 'graphs', :action => 'issue_growth', :project_id => project}) %>
-  <br/>
-  <%= link_to(l(:label_graphs_bug_growth), {:controller => 'graphs', :action => 'bug_growth', :project_id => project}) %>
-  <br/>
+<% aging_issues_enabled =  Setting.plugin_redmine_graphs[:open_aging_issues_enabled] ? true : false %>
+<% total_issues_over_time_enabled = Setting.plugin_redmine_graphs[:total_issues_over_time_enabled] ? true : false %>
+<% total_bugs_over_time_enabled = Setting.plugin_redmine_graphs[:total_bugs_over_time_enabled] ? true : false %>
+
+<% if aging_issues_enabled || total_issues_over_time_enabled || total_bugs_over_time_enabled %>
+  <% if project.nil? %>
+    <h3><%= l(:label_graphs)%></h3>
+    <% if aging_issues_enabled %>
+    	<%= link_to(l(:label_graphs_old_issues), {:controller => 'graphs', :action => 'old_issues'}) %>
+    	<br/>
+    <% end %>
+    
+    <% if total_issues_over_time_enabled %>
+      <%= link_to(l(:label_graphs_issue_growth), {:controller => 'graphs', :action => 'issue_growth'}) %>
+      <br/>
+    <% end %>
+    
+    <% if total_bugs_over_time_enabled %>
+      <%= link_to(l(:label_graphs_bug_growth), {:controller => 'graphs', :action => 'bug_growth'}) %>
+      <br/>
+    <% end %>
+  <% else %>
+    <h3><%= l(:label_graphs)%></h3>
+    <%if aging_issues_enabled %>
+      <%= link_to(l(:label_graphs_old_issues), {:controller => 'graphs', :action => 'old_issues', :project_id => project}) %>
+      <br/>
+    <% end %>
+    
+    <% if total_issues_over_time_enabled %>
+      <%= link_to(l(:label_graphs_issue_growth), {:controller => 'graphs', :action => 'issue_growth', :project_id => project}) %>
+      <br/>
+    <% end %>
+    
+    <% if total_bugs_over_time_enabled %>
+      <%= link_to(l(:label_graphs_bug_growth), {:controller => 'graphs', :action => 'bug_growth', :project_id => project}) %>
+      <br/>
+    <% end %>
+  <% end %>
+  <p>
 <% end %>

@@ -1,0 +1,17 @@
+<h3><%= l(:label_enabled_graphs) %></h3>
+<p>
+	<%= content_tag(:label, l(:label_graphs_old_issues)) %>
+	<%= check_box_tag "settings[open_aging_issues_enabled]", 1, Setting.plugin_redmine_graphs[:open_aging_issues_enabled] ? true : false %><br>
+	
+	<%= content_tag(:label, l(:label_graphs_issue_growth)) %>
+	<%= check_box_tag "settings[total_issues_over_time_enabled]", 1, Setting.plugin_redmine_graphs[:total_issues_over_time_enabled] ? true : false %><br>
+	
+	<%= content_tag(:label, l(:label_graphs_bug_growth)) %>
+	<%= check_box_tag "settings[total_bugs_over_time_enabled]", 1, Setting.plugin_redmine_graphs[:total_bugs_over_time_enabled] ? true : false %><br>
+	
+	<%= content_tag(:label, l(:label_graphs_total_vs_closed_issues)) %>
+  <%= check_box_tag "settings[total_vs_closed_issues_enabled]", 1, Setting.plugin_redmine_graphs[:total_vs_closed_issues_enabled] ? true : false %><br>
+	
+	
+	<%= hidden_field_tag "settings[dummy_value]" %>
+</p>
