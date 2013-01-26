@@ -7,12 +7,12 @@ class GraphsController < ApplicationController
     # Initialization
     ############################################################################
     
-    menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth]
+    menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth, :total_vs_closed]
 
-    before_filter :find_version, :only => [:target_version_graph]
+    before_filter :find_optional_version, :only => [:target_version_graph]
     before_filter :confirm_issues_exist, :only => [:issue_growth]
-    before_filter :find_optional_project, :only => [:issue_growth_graph]
-    before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph]
+    before_filter :find_optional_project, :only => [:issue_growth_graph, :target_version_graph]
+    before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph, :total_vs_closed]
     before_filter :find_bug_issues, :only => [:issue_growth, :bug_growth, :bug_growth_graph]
 	
     helper IssuesHelper
@@ -273,16 +273,30 @@ class GraphsController < ApplicationController
             :width => 800,
             :x_label_format => "%b %d"
         })
-
+        
+        if !@version.nil?
+          fixed_issues = @version.fixed_issues
+          target_date = @version.effective_date
+          completed = @version.completed?
+        elsif !@project.nil?
+          fixed_issues = @project.issues
+          target_date = @project.due_date
+          completed = !@project.active?
+        else
+          fixed_issues = Issue.all
+          target_data = nil
+          completed = false
+        end
+        
         # Group issues
-        issues_by_created_on = @version.fixed_issues.group_by {|issue| issue.created_on.to_date }.sort
-        issues_by_updated_on = @version.fixed_issues.group_by {|issue| issue.updated_on.to_date }.sort
-        issues_by_closed_on = @version.fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| issue.updated_on.to_date }.sort
+        issues_by_created_on = fixed_issues.group_by {|issue| issue.created_on.to_date }.sort
+        issues_by_updated_on = fixed_issues.group_by {|issue| issue.updated_on.to_date }.sort
+        issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| issue.updated_on.to_date }.sort
                     
         # Set the scope of the graph
         scope_end_date = issues_by_updated_on.last.first
-        scope_end_date = @version.effective_date if !@version.effective_date.nil? && @version.effective_date > scope_end_date
-        scope_end_date = Date.today if !@version.completed?
+        scope_end_date = target_date if !target_date.nil? && target_date > scope_end_date
+        scope_end_date = Date.today if !completed
         line_end_date = Date.today
         line_end_date = scope_end_date if scope_end_date < line_end_date
                     
@@ -308,9 +322,9 @@ class GraphsController < ApplicationController
         
         # Add the version due date marker
         graph.add_data({
-            :data => [@version.effective_date.to_s, created_count],
+            :data => [target_date.to_s, created_count],
             :title => l(:field_due_date).capitalize
-        }) unless @version.effective_date.nil?
+        }) unless target_date.nil?
         
         
         # Compile the graph
@@ -364,15 +378,17 @@ class GraphsController < ApplicationController
     end
 	        
     def find_optional_project
-        @project = Project.find(params[:project_id]) unless params[:project_id].blank?
-        deny_access unless User.current.allowed_to?(:view_issues, @project, :global => true)
+        if @version.nil?
+          @project = Project.find(params[:project_id]) unless params[:project_id].blank?
+          deny_access unless User.current.allowed_to?(:view_issues, @project, :global => true)
+        end
     rescue ActiveRecord::RecordNotFound
         render_404
     end
     
-    def find_version
-        @version = Version.find(params[:id])
-        deny_access unless User.current.allowed_to?(:view_issues, @version.project)
+    def find_optional_version
+        @version = Version.find(params[:id]) unless params[:id].blank?
+        deny_access unless @version.nil? or User.current.allowed_to?(:view_issues, @version.project)
     rescue ActiveRecord::RecordNotFound
         render_404
     end
