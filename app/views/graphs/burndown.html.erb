@@ -1,0 +1,12 @@
+<h2><%= l(:label_graphs_burndown) %></h2>
+
+<% if @spent_hours != 0 || @estimated_hours != 0 %>
+    <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'burndown_graph')) if @project.nil? %>
+    <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'burndown_graph', :project_id => @project.id)) unless @project.nil? %>
+<% else %>
+    <%= render :partial => 'issues/list_simple', :locals => { :issues => @issues } %>
+<% end %>
+
+<% content_for :sidebar do %>
+    <%= render :partial => 'issues/sidebar' %>
+<% end %>

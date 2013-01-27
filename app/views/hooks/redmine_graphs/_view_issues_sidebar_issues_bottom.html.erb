@@ -2,8 +2,9 @@
 <% total_issues_over_time_enabled = Setting.plugin_redmine_graphs[:total_issues_over_time_enabled] ? true : false %>
 <% total_bugs_over_time_enabled = Setting.plugin_redmine_graphs[:total_bugs_over_time_enabled] ? true : false %>
 <% total_vs_closed_issues_enabled = Setting.plugin_redmine_graphs[:total_vs_closed_issues_enabled] ? true : false %>
+<% burndown_enabled = Setting.plugin_redmine_graphs[:burndown_enabled] ? true : false %>
 
-<% if aging_issues_enabled || total_issues_over_time_enabled || total_bugs_over_time_enabled || total_vs_closed_issues_enabled %>
+<% if aging_issues_enabled || total_issues_over_time_enabled || total_bugs_over_time_enabled || total_vs_closed_issues_enabled || burndown_enabled %>
   <% if project.nil? %>
     <h3><%= l(:label_graphs)%></h3>
     <% if aging_issues_enabled %>
@@ -23,7 +24,14 @@
     
     <% if  total_vs_closed_issues_enabled %>
       <%= link_to(l(:label_graphs_total_vs_closed_issues), {:controller => 'graphs', :action => 'total_vs_closed', :project_id => project}) %>
+      <br/>
     <% end %>
+    
+    <% if  burndown_enabled %>
+      <%= link_to(l(:label_graphs_burndown), {:controller => 'graphs', :action => 'burndown'}) %>
+      <br/>
+    <% end %>
+    
   <% else %>
     <h3><%= l(:label_graphs)%></h3>
     <%if aging_issues_enabled %>
@@ -43,6 +51,12 @@
     
     <% if  total_vs_closed_issues_enabled %>
       <%= link_to(l(:label_graphs_total_vs_closed_issues), {:controller => 'graphs', :action => 'total_vs_closed', :project_id => project}) %>
+      <br/>
+    <% end %>
+    
+    <% if  burndown_enabled %>
+      <%= link_to(l(:label_graphs_burndown), {:controller => 'graphs', :action => 'burndown', :project_id => project}) %>
+      <br/>
     <% end %>
   <% end %>
   <p>

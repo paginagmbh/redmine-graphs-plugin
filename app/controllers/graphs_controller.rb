@@ -7,12 +7,14 @@ class GraphsController < ApplicationController
     # Initialization
     ############################################################################
     
-    menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth, :total_vs_closed]
+    menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth, :total_vs_closed, :burndown]
 
-    before_filter :find_optional_version, :only => [:target_version_graph]
+    before_filter :find_optional_version, :only => [:target_version_graph, :burndown_graph]
     before_filter :confirm_issues_exist, :only => [:issue_growth]
-    before_filter :find_optional_project, :only => [:issue_growth_graph, :target_version_graph]
-    before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph, :total_vs_closed]
+    before_filter :find_optional_project, :only => [:issue_growth_graph, :target_version_graph, :burndown_graph]
+    before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph, :total_vs_closed, :burndown]
+    before_filter :find_estimated_hours, :only => [:burndown, :burndown_graph]
+    before_filter :find_spent_hours, :only => [:burndown, :burndown_graph]
     before_filter :find_bug_issues, :only => [:issue_growth, :bug_growth, :bug_growth_graph]
 	
     helper IssuesHelper
@@ -332,6 +334,116 @@ class GraphsController < ApplicationController
         send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
     end
     
+def burndown_graph
+
+    # Initialize the graph
+    graph = SVG::Graph::TimeSeries.new({
+        :area_fill => true,
+        :height => 300,
+        :no_css => true,
+        :show_x_guidelines => true,
+        :scale_x_integers => true,
+        :scale_y_integers => true,
+        :show_data_points => true,
+        :show_data_values => false,
+        :stagger_x_labels => true,
+        :style_sheet => "/plugin_assets/redmine_graphs/stylesheets/burndown.css",
+        :width => 800,
+        :x_label_format => "%b %d"
+    })
+    
+    if !@version.nil?
+      fixed_issues = @version.fixed_issues
+      target_date = @version.effective_date
+      completed = @version.completed?
+    elsif !@project.nil?
+      fixed_issues = @project.issues
+      target_date = @project.due_date
+      completed = !@project.active?
+    else
+      fixed_issues = Issue.all
+      target_date = nil
+      completed = false
+    end
+    
+    # Group issues
+    issues_by_created_on = fixed_issues.group_by {|issue| issue.created_on.to_date }.sort
+    issues_by_updated_on = fixed_issues.group_by {|issue| issue.updated_on.to_date }.sort
+    issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| issue.updated_on.to_date }.sort
+    time_entries_by_spent_on = @entries.group_by { |entry| entry.spent_on.to_date }.sort
+                
+    # Set the scope of the graph
+    scope_end_date = issues_by_updated_on.last.first
+    scope_end_date = time_entries_by_spent_on.last.first.to_date if !time_entries_by_spent_on.empty? && time_entries_by_spent_on.last.first.to_date > scope_end_date
+    scope_end_date = Date.today if !completed && Date.today > scope_end_date
+    line_end_date = Date.today
+    line_end_date = scope_end_date if scope_end_date < line_end_date
+                
+    
+    # Generate the spent_time line
+    spent_hours = 0
+    spent_on_line = Hash.new
+    
+    # Generate the remaining_hours line
+    logger.debug "@estimated_hours = #{@estimated_hours}"
+    remaining_hours = @estimated_hours
+    remaining_on_line = Hash.new
+    
+    # Generate the estimated - remaining line
+    difference_on_line = Hash.new
+    
+    all_dates = issues_by_created_on + issues_by_closed_on + time_entries_by_spent_on
+    all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
+    logger.debug "all_dates = #{all_dates}"
+    all_dates.each { | key, objects | 
+      objects.each { | object |
+        if object.is_a? Issue
+          remaining_on_line[(key-1).to_s] = remaining_hours
+          difference_on_line[(key-1).to_s] = @estimated_hours - remaining_hours
+          hours = object.estimated_hours.nil? ? 0 : object.estimated_hours 
+          if object.closed? && key == object.updated_on.to_date
+            remaining_hours -= remaining_hours >= hours ? hours : remaining_hours
+            remaining_on_line[key.to_s] = remaining_hours
+            difference_on_line[key.to_s] = @estimated_hours - remaining_hours
+          end
+       elsif object.is_a? TimeEntry
+        spent_on_line[(key-1).to_s] = spent_hours
+        spent_hours += object.hours.to_f
+        spent_on_line[key.to_s] = spent_hours   
+       end
+      }
+    }
+    
+    spent_on_line[scope_end_date.to_s] = spent_hours
+    graph.add_data({
+        :data => spent_on_line.sort.flatten,
+        :title => l(:label_spent_time).capitalize
+    })
+    
+    remaining_on_line[scope_end_date.to_s] = remaining_hours
+    graph.add_data({
+      :data => remaining_on_line.sort.flatten,
+      :title => l(:label_graphs_remaining_hours)
+    })
+    
+    difference_on_line[scope_end_date.to_s] = @estimated_hours - remaining_hours
+    graph.add_data({
+      :data => difference_on_line.sort.flatten,
+      :title => l(:label_graphs_estimated_minus_remaining)
+    })
+    
+    # Add the version due date marker
+    graph.add_data({
+        :data => [target_date.to_s, 0],
+        :title => l(:field_due_date).capitalize
+    }) unless target_date.nil?
+    
+    
+    # Compile the graph
+    headers["Content-Type"] = "image/svg+xml"
+    send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
+end
+    
     
     ############################################################################
     # Private methods
@@ -376,7 +488,7 @@ class GraphsController < ApplicationController
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-	        
+    
     def find_optional_project
         if @version.nil?
           @project = Project.find(params[:project_id]) unless params[:project_id].blank?
@@ -392,4 +504,40 @@ class GraphsController < ApplicationController
     rescue ActiveRecord::RecordNotFound
         render_404
     end
+    
+    def find_estimated_hours
+      find_optional_project
+      find_optional_version
+      if !@version.nil?
+        @estimated_hours = @version.estimated_hours
+      elsif !@project.nil?
+        @estimated_hours = get_estimated_hours_by_project(@project)
+      else
+        @estimated_hours = 0
+        Project.all.each { |project| @estimated_hours += get_estimated_hours_by_project(project) }
+      end
+    end
+    
+    def find_spent_hours
+      find_optional_project
+      find_optional_version
+      if !@version.nil?
+        @entries = TimeEntry.joins(:issue).where("#{Issue.table_name}.fixed_version_id = ?", @version.id)
+        @spent_hours = @version.spent_hours
+      elsif !@project.nil?
+        @entries = @project.time_entries
+        @spent_hours = @entries.sum(:hours).to_f
+      else
+        @spent_hours = 0
+        @entries = TimeEntry.all
+        @entries.each { |entry| @spent_hours += entry.hours }
+      end
+    end
+    
+    def get_estimated_hours_by_project(project)
+      estimated_hours = 0
+      project.issues.each { |issue| estimated_hours += issue.estimated_hours.nil? ? 0 : issue.estimated_hours }
+      return estimated_hours
+    end
+    
 end
