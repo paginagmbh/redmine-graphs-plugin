@@ -279,11 +279,11 @@ class GraphsController < ApplicationController
         
         if !@version.nil?
           fixed_issues = @version.fixed_issues
-          target_date = @version.effective_date
+          target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
           completed = @version.completed?
         elsif !@project.nil?
           fixed_issues = @project.issues
-          target_date = @project.due_date
+          target_date = @project.due_date.to_time.localtime.to_date unless @project.due_date.nil?
           completed = !@project.active?
         else
           fixed_issues = Issue.all
@@ -355,11 +355,11 @@ class GraphsController < ApplicationController
         
         if !@version.nil?
           fixed_issues = @version.fixed_issues
-          target_date = @version.effective_date
+          target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
           completed = @version.completed?
         elsif !@project.nil?
           fixed_issues = @project.issues
-          target_date = @project.due_date
+          target_date = @project.due_date.to_time.localtime.to_date unless @project.due_date.nil?
           completed = !@project.active?
         else
           fixed_issues = Issue.all
