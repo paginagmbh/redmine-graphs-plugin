@@ -13,6 +13,7 @@ class GraphsController < ApplicationController
     before_filter :confirm_issues_exist, :only => [:issue_growth]
     before_filter :find_optional_project, :only => [:issue_growth_graph, :target_version_graph, :burndown_graph]
     before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph, :total_vs_closed, :burndown]
+    before_filter :find_all_issues, :only => [:total_vs_closed]
     before_filter :find_estimated_hours, :only => [:burndown, :burndown_graph]
     before_filter :find_spent_hours, :only => [:burndown, :burndown_graph]
     before_filter :find_bug_issues, :only => [:issue_growth, :bug_growth, :bug_growth_graph]
@@ -475,8 +476,21 @@ end
     rescue ActiveRecord::RecordNotFound
         render_404
     end
+    
+    def find_all_issues
+        find_optional_project
+        if !@project.nil?
+            ids = [@project.id]
+            ids += @project.descendants.active.visible.collect(&:id)
+            @all_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
+        else
+            @all_issues = Issue.visible.find(:all, :include => [:status])
+        end
+    rescue ActiveRecord::RecordNotFound
+        render_404
+    end
 	
-	def find_bug_issues
+    def find_bug_issues
         find_optional_project
         if !@project.nil?
             ids = [@project.id]

@@ -1,6 +1,6 @@
 <h2><%= l(:label_graphs_total_vs_closed_issues) %></h2>
 
-<% unless @issues.empty? %>
+<% unless @all_issues.empty? %>
     <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'target_version_graph')) if @project.nil? %>
     <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'target_version_graph', :project_id => @project.id)) unless @project.nil? %>
 <% else %>
