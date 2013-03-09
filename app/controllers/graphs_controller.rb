@@ -282,7 +282,9 @@ class GraphsController < ApplicationController
           target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
           completed = @version.completed?
         elsif !@project.nil?
-          fixed_issues = @project.issues
+          ids = [@project.id]
+          ids += @project.descendants.active.visible.collect(&:id)
+          fixed_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
           target_date = @project.due_date.to_time.localtime.to_date unless @project.due_date.nil?
           completed = !@project.active?
         else
@@ -480,6 +482,7 @@ class GraphsController < ApplicationController
         if !@project.nil?
             ids = [@project.id]
             ids += @project.descendants.active.visible.collect(&:id)
+            logger.debug "ids = #{ids.inspect}"
             @all_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
         else
             @all_issues = Issue.visible.find(:all, :include => [:status])
@@ -537,7 +540,9 @@ class GraphsController < ApplicationController
         @entries = TimeEntry.joins(:issue).where("#{Issue.table_name}.fixed_version_id = ?", @version.id)
         @spent_hours = @version.spent_hours
       elsif !@project.nil?
-        @entries = @project.time_entries
+        ids = [@project.id]
+        ids += @project.descendants.active.visible.collect(&:id)
+        @entries = TimeEntry.visible.joins(:issue).where("#{Issue.table_name}.project_id IN (?)", ids)
         @spent_hours = @entries.sum(:hours).to_f
       else
         @spent_hours = 0
@@ -548,8 +553,13 @@ class GraphsController < ApplicationController
     
     def get_estimated_hours_by_project(project)
       estimated_hours = 0
-      project.issues.each { |issue| estimated_hours += issue.estimated_hours.nil? ? 0 : issue.estimated_hours }
-      return estimated_hours
+      ids = [project.id]
+      ids += project.descendants.active.visible.collect(&:id)
+      issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
+      issues.each do |issue|
+        estimated_hours += issue.estimated_hours unless issue.estimated_hours.nil?
+      end
+      estimated_hours
     end
     
 end
