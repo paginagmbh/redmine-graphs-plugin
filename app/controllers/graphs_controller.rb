@@ -360,7 +360,9 @@ class GraphsController < ApplicationController
           target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
           completed = @version.completed?
         elsif !@project.nil?
-          fixed_issues = @project.issues
+          ids = [@project.id]
+          ids += @project.descendants.active.visible.collect(&:id)
+          fixed_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
           target_date = @project.due_date.to_time.localtime.to_date unless @project.due_date.nil?
           completed = !@project.active?
         else
@@ -482,7 +484,6 @@ class GraphsController < ApplicationController
         if !@project.nil?
             ids = [@project.id]
             ids += @project.descendants.active.visible.collect(&:id)
-            logger.debug "ids = #{ids.inspect}"
             @all_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
         else
             @all_issues = Issue.visible.find(:all, :include => [:status])
