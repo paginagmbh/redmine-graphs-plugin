@@ -52,4 +52,10 @@ Shows the number of total open vs closed bugs on a project.  Will also show the 
 Display the progress of a project relative to time spent.  Intended to be used to track a project progress 
 relative to an ideal schedule.
 
+* _Spent time_: The total of all time logged to the project
+* _Remaining_: The total estimated time of all open issues
+* _Estimated - Remaining_: the estimated time to complete closed issues on the project.  This provides a metric
+for measuring the accuracy of the projects time estimates
+* _Due Date_: the target date of the project/version
+
 ![burndown](/img/burndown.png "Burndown")
