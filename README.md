@@ -53,7 +53,8 @@ Display the progress of a project relative to time spent.  Intended to be used t
 relative to an ideal schedule.
 
 * _Spent time_: The total of all time logged to the project
-* _Remaining_: The total estimated time of all open issues
+* _Remaining_: The total estimated time of all open issues (assumes that all issues begin at the project start
+date
 * _Estimated - Remaining_: the estimated time to complete closed issues on the project.  This provides a metric
 for measuring the accuracy of the projects time estimates
 * _Due Date_: the target date of the project/version
