@@ -394,7 +394,8 @@ class GraphsController < ApplicationController
         remaining_on_line = Hash.new
         
         # Generate the estimated - remaining line
-        difference_on_line = Hash.new
+        completed_hours = 0
+        completed_on_line = Hash.new
         
         all_dates = issues_by_created_on + issues_by_closed_on + time_entries_by_spent_on
         all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
@@ -402,12 +403,13 @@ class GraphsController < ApplicationController
           objects.each { | object |
             if object.is_a? Issue
               remaining_on_line[(key-1).to_s] = remaining_hours
-              difference_on_line[(key-1).to_s] = @estimated_hours - remaining_hours
+              completed_on_line[(key-1).to_s] = completed_hours
               hours = object.estimated_hours.nil? ? 0 : object.estimated_hours 
               if object.closed? && key == object.updated_on.to_date
                 remaining_hours -= remaining_hours >= hours ? hours : remaining_hours
+                completed_hours += hours
                 remaining_on_line[key.to_s] = remaining_hours
-                difference_on_line[key.to_s] = @estimated_hours - remaining_hours
+                completed_on_line[key.to_s] = completed_hours
               end
            elsif object.is_a? TimeEntry
             spent_on_line[(key-1).to_s] = spent_hours
@@ -429,10 +431,10 @@ class GraphsController < ApplicationController
           :title => l(:label_graphs_remaining_hours)
         })
         
-        difference_on_line[scope_end_date.to_s] = @estimated_hours - remaining_hours
+        completed_on_line[scope_end_date.to_s] = completed_hours
         graph.add_data({
-          :data => difference_on_line.sort.flatten,
-          :title => l(:label_graphs_estimated_minus_remaining)
+          :data => completed_on_line.sort.flatten,
+          :title => l(:label_graphs_completed_work)
         })
         
         # Add the version due date marker

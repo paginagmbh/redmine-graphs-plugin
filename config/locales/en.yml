@@ -8,8 +8,8 @@ en:
   label_graphs_burndown: Burndown
   label_graphs_issue_status_flow: Recent status changes (within 7 days)
   label_graphs_assigned_to_status_flow: Recent assignment changes (within 7 days)
-  label_graphs_remaining_hours: Remaining
-  label_graphs_estimated_minus_remaining: Estimated - Remaining
+  label_graphs_remaining_hours: Remaining (Estimated)
+  label_graphs_completed_work: Completed Work (Estimated)
   label_enabled_graphs: Enabled Graphs
   warning_no_issues: There are no issues to graph.
   
