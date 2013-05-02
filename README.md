@@ -13,6 +13,8 @@ Report any issues to: https://github.com/ande3577/redmine-graphs-plugin/issues?s
 
 Only tested on Redmine 2.2/2.3 and Ruby 1.9.3.  Use other versions at your own risk.
 
+*Redmine 2.2 must use 2.2_branch*
+
 NOTE: Redmine 2.0.3 has compatibility issue with Ruby 1.9.x. Please see {Defect #11290: ParseDate missing in Ruby 1.9x - Redmine}[http://www.redmine.org/issues/11290].
 
     $ cd /path/to/redmine/plugins
