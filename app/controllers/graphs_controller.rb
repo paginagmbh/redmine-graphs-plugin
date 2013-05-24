@@ -385,17 +385,13 @@ class GraphsController < ApplicationController
         line_end_date = scope_end_date if scope_end_date < line_end_date
                     
         
-        # Generate the spent_time line
-        spent_hours = 0
+        # Generate the estimated - spent_time line
+        spent_hours = @estimated_hours
         spent_on_line = Hash.new
         
         # Generate the remaining_hours line
         remaining_hours = @estimated_hours
         remaining_on_line = Hash.new
-        
-        # Generate the estimated - remaining line
-        completed_hours = 0
-        completed_on_line = Hash.new
         
         all_dates = issues_by_created_on + issues_by_closed_on + time_entries_by_spent_on
         all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
@@ -403,17 +399,14 @@ class GraphsController < ApplicationController
           objects.each { | object |
             if object.is_a? Issue
               remaining_on_line[(key-1).to_s] = remaining_hours
-              completed_on_line[(key-1).to_s] = completed_hours
               hours = object.estimated_hours.nil? ? 0 : object.estimated_hours 
               if object.closed? && key == object.updated_on.to_date
                 remaining_hours -= remaining_hours >= hours ? hours : remaining_hours
-                completed_hours += hours
                 remaining_on_line[key.to_s] = remaining_hours
-                completed_on_line[key.to_s] = completed_hours
               end
            elsif object.is_a? TimeEntry
             spent_on_line[(key-1).to_s] = spent_hours
-            spent_hours += object.hours.to_f
+            spent_hours -= object.hours.to_f
             spent_on_line[key.to_s] = spent_hours   
            end
           }
@@ -422,19 +415,13 @@ class GraphsController < ApplicationController
         spent_on_line[scope_end_date.to_s] = spent_hours
         graph.add_data({
             :data => spent_on_line.sort.flatten,
-            :title => l(:label_spent_time).capitalize
+            :title => l(:label_estimated_minus_spent_time).capitalize
         })
         
         remaining_on_line[scope_end_date.to_s] = remaining_hours
         graph.add_data({
           :data => remaining_on_line.sort.flatten,
           :title => l(:label_graphs_remaining_hours)
-        })
-        
-        completed_on_line[scope_end_date.to_s] = completed_hours
-        graph.add_data({
-          :data => completed_on_line.sort.flatten,
-          :title => l(:label_graphs_completed_work)
         })
         
         # Add the version due date marker

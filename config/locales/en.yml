@@ -9,6 +9,7 @@ en:
   label_graphs_issue_status_flow: Recent status changes (within 7 days)
   label_graphs_assigned_to_status_flow: Recent assignment changes (within 7 days)
   label_graphs_remaining_hours: Remaining Hours (Estimated)
+  label_estimated_minus_spent_time: Estimated - Spent Hours
   label_graphs_completed_work: Completed Hours (Estimated)
   label_enabled_graphs: Enabled Graphs
   warning_no_issues: There are no issues to graph.
