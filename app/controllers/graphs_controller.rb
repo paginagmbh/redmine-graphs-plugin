@@ -231,7 +231,7 @@ class GraphsController < ApplicationController
 
         # Group issues
         bug_by_created_on = @bugs.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
-        bug_by_updated_on = @bugs.delete_if {|issue| !issue.closed? }.group_by {|issue| issue.updated_on.to_time.localtime.to_date }.sort
+        bug_by_closed_on = @bugs.delete_if {|issue| !issue.closed? }.group_by {|issue| issue.closed_on.to_time.localtime.to_date }.sort
 		
         # Generate the created_on line
         created_count = 0
@@ -244,14 +244,14 @@ class GraphsController < ApplicationController
         }) unless bug_by_created_on.empty?
         
         # Generate the closed_on line
-        updated_count = 0
-        updated_on_line = Hash.new
-        bug_by_updated_on.each { |updated_on, bugs| updated_on_line[(updated_on-1).to_s] = updated_count; updated_count += bugs.size; updated_on_line[updated_on.to_s] = updated_count }
-        updated_on_line[Date.today.to_s] = updated_count
+        closed_count = 0
+        closed_on_line = Hash.new
+        bug_by_closed_on.each { |closed_on, bugs| closed_on_line[(closed_on-1).to_s] = closed_count; closed_count += bugs.size; closed_on_line[closed_on.to_s] = closed_count }
+        closed_on_line[Date.today.to_s] = closed_count
         graph.add_data({
-            :data => updated_on_line.sort.flatten,
+            :data => closed_on_line.sort.flatten,
             :title => l(:label_graphs_closed_bugs)
-        }) unless bug_by_updated_on.empty?
+        }) unless bug_by_closed_on.empty?
         
         # Compile the graph
         headers["Content-Type"] = "image/svg+xml"
@@ -295,11 +295,11 @@ class GraphsController < ApplicationController
         
         # Group issues
         issues_by_created_on = fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
-        issues_by_updated_on = fixed_issues.group_by {|issue| issue.updated_on.to_time.localtime.to_date }.sort
-        issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| issue.updated_on.to_time.localtime.to_date }.sort
+        issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
                     
         # Set the scope of the graph
-        scope_end_date = issues_by_updated_on.last.first
+        scope_end_date = issues_by_created_on.last.first
+        scope_end_date = issues_by_created_on.last.first if issues_by_closed_on.any? and issues_by_created_on.last.first > scope_end_date
         scope_end_date = target_date if !target_date.nil? && target_date > scope_end_date
         scope_end_date = Date.today if !completed
         line_end_date = Date.today
@@ -373,12 +373,12 @@ class GraphsController < ApplicationController
         
         # Group issues
         issues_by_created_on = fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
-        issues_by_updated_on = fixed_issues.group_by {|issue| issue.updated_on.to_time.localtime.to_date }.sort
-        issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| issue.updated_on.to_time.localtime.to_date }.sort
+        issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
         time_entries_by_spent_on = @entries.group_by { |entry| entry.spent_on.to_time.localtime.to_date }.sort
                     
         # Set the scope of the graph
-        scope_end_date = issues_by_updated_on.last.first
+        scope_end_date = issues_by_created_on.last.first
+        scope_end_date = issues_by_closed_on.last.first if issues_by_closed_on.any? and issues_by_closed_on.last.first > scope_end_date
         scope_end_date = time_entries_by_spent_on.last.first.to_date if !time_entries_by_spent_on.empty? && time_entries_by_spent_on.last.first.to_date > scope_end_date
         scope_end_date = Date.today if !completed && Date.today > scope_end_date
         line_end_date = Date.today
@@ -400,7 +400,7 @@ class GraphsController < ApplicationController
             if object.is_a? Issue
               remaining_on_line[(key-1).to_s] = remaining_hours
               hours = object.estimated_hours.nil? ? 0 : object.estimated_hours 
-              if object.closed? && key == object.updated_on.to_date
+              if object.closed? && key == get_closed_on_or_updated_on(object).to_date
                 remaining_hours -= remaining_hours >= hours ? hours : remaining_hours
                 remaining_on_line[key.to_s] = remaining_hours
               end
@@ -550,6 +550,11 @@ class GraphsController < ApplicationController
         estimated_hours += issue.estimated_hours unless issue.estimated_hours.nil?
       end
       estimated_hours
+    end
+    
+    def get_closed_on_or_updated_on(object)
+      return object.closed_on unless object.closed_on.nil?
+      object.updated_on
     end
     
 end
