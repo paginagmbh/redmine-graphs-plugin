@@ -61,3 +61,10 @@ hours provides a metric for measuring the accuracy of the project's time estimat
 * _Due Date_: the target date of the project/version
 
 ![burndown](/img/burndown.png "Burndown")
+
+### Burnup
+
+Display the total, completed and spent time in burnup format.  This is an alternative presentation of the 
+same information contained in a burndown graph.
+
+![burnup](/img/burnup.png "Burnup")

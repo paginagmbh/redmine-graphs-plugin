@@ -13,6 +13,9 @@
   
   <p><%= content_tag(:label, l(:label_graphs_burndown)) %>
   <%= check_box_tag "settings[burndown_enabled]", 1, Setting.plugin_redmine_graphs[:burndown_enabled] ? true : false %>
+  
+  <p><%= content_tag(:label, l(:label_graphs_burnup)) %>
+  <%= check_box_tag "settings[burnup_enabled]", 1, Setting.plugin_redmine_graphs[:burnup_enabled] ? true : false %>
 	
 	<%= hidden_field_tag "settings[dummy_value]" %>
 </p>

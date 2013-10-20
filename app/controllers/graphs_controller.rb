@@ -7,15 +7,16 @@ class GraphsController < ApplicationController
     # Initialization
     ############################################################################
     
-    menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth, :total_vs_closed, :burndown]
+    menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth, :total_vs_closed, :burndown, :burnup]
 
     before_filter :find_optional_version, :only => [:target_version_graph, :burndown_graph]
     before_filter :confirm_issues_exist, :only => [:issue_growth]
-    before_filter :find_optional_project, :only => [:issue_growth_graph, :target_version_graph, :burndown_graph]
-    before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph, :total_vs_closed, :burndown]
+    before_filter :find_optional_project, :only => [:issue_growth_graph, :target_version_graph, :burndown_graph, :burnup_graph]
+    before_filter :find_open_issues, :only => [:old_issues, :issue_age_graph, :total_vs_closed, :burndown, :burnup]
     before_filter :find_all_issues, :only => [:total_vs_closed]
-    before_filter :find_estimated_hours, :only => [:burndown, :burndown_graph]
-    before_filter :find_spent_hours, :only => [:burndown, :burndown_graph]
+    before_filter :find_estimated_hours, :only => [:burndown, :burndown_graph, :burnup, :burnup_graph]
+    before_filter :find_spent_hours, :only => [:burndown, :burndown_graph, :burnup, :burnup_graph]
+    before_filter :find_version_info, :only => [:burndown, :burndown_graph, :burnup, :burnup_graph]
     before_filter :find_bug_issues, :only => [:issue_growth, :bug_growth, :bug_growth_graph]
 	
     helper IssuesHelper
@@ -355,45 +356,16 @@ class GraphsController < ApplicationController
             :x_label_format => "%b %d"
         })
         
-        if !@version.nil?
-          fixed_issues = @version.fixed_issues
-          target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
-          completed = @version.completed?
-        elsif !@project.nil?
-          ids = [@project.id]
-          ids += @project.descendants.active.visible.collect(&:id)
-          fixed_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
-          target_date = @project.due_date.to_time.localtime.to_date unless @project.due_date.nil?
-          completed = !@project.active?
-        else
-          fixed_issues = Issue.all
-          target_date = nil
-          completed = false
-        end
-        
-        # Group issues
-        issues_by_created_on = fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
-        issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
-        time_entries_by_spent_on = @entries.group_by { |entry| entry.spent_on.to_time.localtime.to_date }.sort
-                    
-        # Set the scope of the graph
-        scope_end_date = issues_by_created_on.last.first
-        scope_end_date = issues_by_closed_on.last.first if issues_by_closed_on.any? and issues_by_closed_on.last.first > scope_end_date
-        scope_end_date = time_entries_by_spent_on.last.first.to_date if !time_entries_by_spent_on.empty? && time_entries_by_spent_on.last.first.to_date > scope_end_date
-        scope_end_date = Date.today if !completed && Date.today > scope_end_date
-        line_end_date = Date.today
-        line_end_date = scope_end_date if scope_end_date < line_end_date
-                    
-        
         # Generate the estimated - spent_time line
         spent_hours = @estimated_hours
         spent_on_line = Hash.new
+        spent_on_line[@scope_start_date.to_s] = spent_hours
         
         # Generate the remaining_hours line
         remaining_hours = @estimated_hours
         remaining_on_line = Hash.new
         
-        all_dates = issues_by_created_on + issues_by_closed_on + time_entries_by_spent_on
+        all_dates = @issues_by_created_on + @issues_by_closed_on + @time_entries_by_spent_on
         all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
         all_dates.each { | key, objects | 
           objects.each { | object |
@@ -412,13 +384,13 @@ class GraphsController < ApplicationController
           }
         }
         
-        spent_on_line[scope_end_date.to_s] = spent_hours
+        spent_on_line[@scope_end_date.to_s] = spent_hours
         graph.add_data({
             :data => spent_on_line.sort.flatten,
             :title => l(:label_estimated_minus_spent_time).capitalize
         })
         
-        remaining_on_line[scope_end_date.to_s] = remaining_hours
+        remaining_on_line[@scope_end_date.to_s] = remaining_hours
         graph.add_data({
           :data => remaining_on_line.sort.flatten,
           :title => l(:label_graphs_remaining_hours)
@@ -426,15 +398,103 @@ class GraphsController < ApplicationController
         
         # Add the version due date marker
         graph.add_data({
-            :data => [target_date.to_s, 0],
+            :data => [@target_date.to_s, 0],
             :title => l(:field_due_date).capitalize
-        }) unless target_date.nil?
+        }) unless @target_date.nil?
         
         
         # Compile the graph
         headers["Content-Type"] = "image/svg+xml"
         send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
     end
+    
+def burnup_graph
+ 
+     # Initialize the graph
+     graph = SVG::Graph::TimeSeries.new({
+         :area_fill => true,
+         :height => 300,
+         :no_css => true,
+         :show_x_guidelines => true,
+         :scale_x_integers => true,
+         :scale_y_integers => true,
+         :show_data_points => true,
+         :show_data_values => false,
+         :stagger_x_labels => true,
+         :style_sheet => "#{relative_url_root}/plugin_assets/redmine_graphs/stylesheets/burnup.css",
+         :width => 800,
+         :x_label_format => "%b %d"
+     })
+     
+     # Generate the estimated - spent_time line
+     spent_hours = 0
+     spent_on_line = Hash.new
+     spent_on_line[@scope_start_date.to_s] = 0
+     
+     total_hours = 0
+     total_hours_line = Hash.new
+     
+     # Generate the remaining_hours line
+     completed_hours = 0
+     completed_on_line = Hash.new
+     
+     all_dates = @issues_by_created_on + @issues_by_closed_on + @time_entries_by_spent_on
+     all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
+     all_dates.each { | key, objects | 
+       objects.each { | object |
+         if object.is_a? Issue
+           total_hours_line[(key-1).to_s] = total_hours
+           completed_on_line[(key-1).to_s] = completed_hours
+             
+           hours = object.estimated_hours.nil? ? 0 : object.estimated_hours
+           
+           #make sure that if an issue is created and closed at the same time that it gets added to both lists
+           if key == object.created_on.to_date
+             total_hours += hours
+             total_hours_line[key.to_s] = total_hours             
+           end
+           
+           if object.closed? && key == get_closed_on_or_updated_on(object).to_date
+             completed_hours += hours
+             completed_on_line[key.to_s] = completed_hours
+           end
+        elsif object.is_a? TimeEntry
+         spent_on_line[(key-1).to_s] = spent_hours
+         spent_hours += object.hours.to_f
+         spent_on_line[key.to_s] = spent_hours   
+        end
+       }
+     }
+     
+     total_hours_line[@scope_end_date.to_s] = total_hours
+     graph.add_data({
+       :data => total_hours_line.sort.flatten,
+       :title => l(:label_graphs_total_hours)
+     })
+     
+     completed_on_line[@scope_end_date.to_s] = completed_hours
+     graph.add_data({
+       :data => completed_on_line.sort.flatten,
+       :title => l(:label_graphs_completed_work)
+     })
+     
+     spent_on_line[@scope_end_date.to_s] = spent_hours
+     graph.add_data({
+         :data => spent_on_line.sort.flatten,
+         :title => l(:label_spent_time).capitalize
+     })
+     
+     # Add the version due date marker
+     graph.add_data({
+         :data => [@target_date.to_s, total_hours],
+         :title => l(:field_due_date).capitalize
+     }) unless @target_date.nil?
+     
+     
+     # Compile the graph
+     headers["Content-Type"] = "image/svg+xml"
+     send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
+ end
     
     
     ############################################################################
@@ -539,6 +599,40 @@ class GraphsController < ApplicationController
         @entries = TimeEntry.all
         @entries.each { |entry| @spent_hours += entry.hours }
       end
+    end
+    
+    def find_version_info
+      if !@version.nil?
+         @fixed_issues = @version.fixed_issues
+         @target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
+         @completed = @version.completed?
+       elsif !@project.nil?
+         ids = [@project.id]
+         ids += @project.descendants.active.visible.collect(&:id)
+         @fixed_issues = Issue.visible.find(:all, :include => [:status], :conditions => ["#{Project.table_name}.id IN (?)", ids])
+         @target_date = @project.due_date.to_time.localtime.to_date unless @project.due_date.nil?
+         @completed = !@project.active?
+       else
+         @fixed_issues = Issue.all
+         @target_date = nil
+         @completed = false
+       end
+       
+      # Group issues
+      @issues_by_created_on = @fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
+      @issues_by_closed_on = @fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
+      @time_entries_by_spent_on = @entries.group_by { |entry| entry.spent_on.to_time.localtime.to_date }.sort
+        
+      # Set the scope of the graph
+      @scope_start_date = @issues_by_created_on.first.first
+      @scope_start_date = @spent_time.first.first if @spent_time and @spent_time.any and @spent_time.first.first < @scope_start_date
+        
+      @scope_end_date = @issues_by_created_on.last.first
+      @scope_end_date = @issues_by_closed_on.last.first if @issues_by_closed_on.any? and @issues_by_closed_on.last.first > @scope_end_date
+      @scope_end_date = @time_entries_by_spent_on.last.first.to_date if !@time_entries_by_spent_on.empty? && @time_entries_by_spent_on.last.first.to_date > @scope_end_date
+      @scope_end_date = Date.today if !@completed && Date.today > @scope_end_date
+      @line_end_date = Date.today
+      @line_end_date = @scope_end_date if @scope_end_date < @line_end_date
     end
     
     def get_estimated_hours_by_project(project)

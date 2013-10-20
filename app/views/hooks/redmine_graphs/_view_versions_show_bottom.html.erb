@@ -9,4 +9,9 @@
         <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'burndown_graph', :id => version))%>
       </fieldset>
     <% end %>
+    <% if Setting.plugin_redmine_graphs[:burnup_enabled] ? true : false %>
+      <fieldset id='target_version_graph'><legend><%= l(:label_graphs_burnup) %></legend>
+        <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'burnup_graph', :id => version))%>
+      </fieldset>
+    <% end %>
   <% end %>
