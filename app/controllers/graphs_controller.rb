@@ -359,7 +359,7 @@ class GraphsController < ApplicationController
         # Generate the estimated - spent_time line
         spent_hours = @estimated_hours
         spent_on_line = Hash.new
-        spent_on_line[@scope_start_date.to_s] = spent_hours
+        spent_on_line[@scope_start_date.to_s] = spent_hours if @scope_start_date
         
         # Generate the remaining_hours line
         remaining_hours = @estimated_hours
@@ -429,7 +429,7 @@ def burnup_graph
      # Generate the estimated - spent_time line
      spent_hours = 0
      spent_on_line = Hash.new
-     spent_on_line[@scope_start_date.to_s] = 0
+     spent_on_line[@scope_start_date.to_s] = 0  if @scope_start_date
      
      total_hours = 0
      total_hours_line = Hash.new
@@ -622,6 +622,9 @@ def burnup_graph
       @issues_by_created_on = @fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
       @issues_by_closed_on = @fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
       @time_entries_by_spent_on = @entries.group_by { |entry| entry.spent_on.to_time.localtime.to_date }.sort
+        
+      # do not proceed if no issues are present on the project/version
+      return if @issues_by_created_on.empty?
         
       # Set the scope of the graph
       @scope_start_date = @issues_by_created_on.first.first
