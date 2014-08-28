@@ -6,7 +6,7 @@ class GraphsController < ApplicationController
     ############################################################################
     # Initialization
     ############################################################################
-    
+
     menu_item :issues, :only => [:issue_growth, :old_issues, :bug_growth, :total_vs_closed, :burndown, :burnup]
 
     before_filter :find_optional_version, :only => [:target_version_graph, :burndown_graph]
@@ -18,9 +18,9 @@ class GraphsController < ApplicationController
     before_filter :find_spent_hours, :only => [:burndown, :burndown_graph, :burnup, :burnup_graph]
     before_filter :find_version_info, :only => [:burndown, :burndown_graph, :burnup, :burnup_graph]
     before_filter :find_bug_issues, :only => [:issue_growth, :bug_growth, :bug_growth_graph]
-	
+
     helper IssuesHelper
-    
+
     ############################################################################
     # My Page block graphs
     ############################################################################
@@ -44,7 +44,7 @@ class GraphsController < ApplicationController
         headers["Content-Type"] = "image/svg+xml"
         render :layout => false
     end
-    
+
     # Displays a ring of issue status changes
     def recent_status_changes_graph
         yesterday = (Time.now - 7.day).strftime('%Y-%m-%d %H:%M:%S')
@@ -62,32 +62,32 @@ class GraphsController < ApplicationController
         headers["Content-Type"] = "image/svg+xml"
         render :layout => false
     end
-    
-    
+
+
     ############################################################################
     # Graph pages
     ############################################################################
     # Displays total number of issues over time
     def issue_growth
     end
-    
-    # Displays created vs update date on open issues over time    
+
+    # Displays created vs update date on open issues over time
     def old_issues
-        @issues_by_created_on = @issues.sort {|a,b| a.created_on<=>b.created_on} 
+        @issues_by_created_on = @issues.sort {|a,b| a.created_on<=>b.created_on}
         @issues_by_updated_on = @issues.sort {|a,b| a.updated_on<=>b.updated_on}
     end
-    # Displays created vs update date on bugs over time    
+    # Displays created vs update date on bugs over time
     def bug_growth
         @bug_by_created = @bugs.group_by {|issue| issue.created_on.to_date }.sort
     end
-        
+
     ############################################################################
     # Embedded graphs for graph pages
     ############################################################################
     # Displays projects by total issues over time
     def issue_growth_graph
       top_projects = nil; issue_counts = nil;
-      
+
       # Initialize the graph
       graph = SVG::Graph::TimeSeries.new({
           :area_fill => true,
@@ -115,7 +115,7 @@ class GraphsController < ApplicationController
             sql << " AND (project_id = #{@project.id}"
             sql << "    OR project_id IN (%s)" % @project.descendants.active.visible.collect { |p| p.id }.join(',') unless @project.descendants.active.visible.empty?
             sql << " )"
-        end 
+        end
         unless User.current.admin?
             sql << " AND (#{Issue.table_name}.is_private = #{conn.quoted_false} OR "
             sql << "(#{Project.allowed_to_condition(User.current, :view_private_issues)}))"
@@ -124,7 +124,7 @@ class GraphsController < ApplicationController
         sql << " ORDER BY issue_count DESC"
         sql << " LIMIT 6"
         top_projects = conn.select_all(sql).collect { |p| p["project_id"] }
-        
+
         # Get the issues created per project, per day
         sql = "SELECT project_id, date(#{Issue.table_name}.created_on) as date, COUNT(*) as issue_count"
         sql << " FROM #{Issue.table_name}"
@@ -137,7 +137,7 @@ class GraphsController < ApplicationController
         sql << " GROUP BY project_id, date"
         issue_counts = conn.select_all(sql).group_by { |c| c["project_id"] } unless top_projects.compact.empty?
       end
-      
+
       # Generate the created_on lines
       top_projects.each do |project_id|
           counts = Array(issue_counts[project_id])
@@ -152,10 +152,10 @@ class GraphsController < ApplicationController
           })
       end
       graph.add_data(
-        :data => [ Date.today.to_s, 0 , (Date.today + 60).to_s, 0 ], 
+        :data => [ Date.today.to_s, 0 , (Date.today + 60).to_s, 0 ],
         :title => Project.find(@project.id).to_s
       ) if top_projects.compact.empty?
-      
+
       # Compile the graph
       headers["Content-Type"] = "image/svg+xml"
       send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
@@ -163,7 +163,7 @@ class GraphsController < ApplicationController
 
     # Displays issues by creation date, cumulatively
     def issue_age_graph
-    
+
         # Initialize the graph
         graph = SVG::Graph::TimeSeries.new({
             :area_fill => true,
@@ -184,7 +184,7 @@ class GraphsController < ApplicationController
         # Group issues
         issues_by_created_on = @issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
         issues_by_updated_on = @issues.group_by {|issue| issue.updated_on.to_time.localtime.to_date }.sort
-        
+
         # Generate the created_on line
         created_count = 0
         created_on_line = Hash.new
@@ -194,7 +194,7 @@ class GraphsController < ApplicationController
             :data => created_on_line.sort.flatten,
             :title => l(:field_created_on)
         }) unless issues_by_created_on.empty?
-        
+
         # Generate the closed_on line
         updated_count = 0
         updated_on_line = Hash.new
@@ -204,15 +204,15 @@ class GraphsController < ApplicationController
             :data => updated_on_line.sort.flatten,
             :title => l(:field_updated_on)
         }) unless issues_by_updated_on.empty?
-        
+
         # Compile the graph
         headers["Content-Type"] = "image/svg+xml"
         send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
     end
-    
+
 	# Displays bugs over time
     def bug_growth_graph
-    
+
         # Initialize the graph
         graph = SVG::Graph::TimeSeries.new({
             :area_fill => true,
@@ -233,7 +233,7 @@ class GraphsController < ApplicationController
         # Group issues
         bug_by_created_on = @bugs.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
         bug_by_closed_on = @bugs.delete_if {|issue| !issue.closed? }.group_by {|issue| issue.closed_on.to_time.localtime.to_date }.sort
-		
+
         # Generate the created_on line
         created_count = 0
         created_on_line = Hash.new
@@ -243,7 +243,7 @@ class GraphsController < ApplicationController
             :data => created_on_line.sort.flatten,
             :title => l(:field_created_on)
         }) unless bug_by_created_on.empty?
-        
+
         # Generate the closed_on line
         closed_count = 0
         closed_on_line = Hash.new
@@ -253,12 +253,12 @@ class GraphsController < ApplicationController
             :data => closed_on_line.sort.flatten,
             :title => l(:label_graphs_closed_bugs)
         }) unless bug_by_closed_on.empty?
-        
+
         # Compile the graph
         headers["Content-Type"] = "image/svg+xml"
         send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
     end
-	
+
 	# Displays open and total issue counts over time
     def target_version_graph
 
@@ -277,7 +277,7 @@ class GraphsController < ApplicationController
             :width => 800,
             :x_label_format => "%b %d"
         })
-        
+
         if !@version.nil?
           fixed_issues = @version.fixed_issues
           target_date = @version.effective_date.to_time.localtime.to_date unless @version.effective_date.nil?
@@ -293,11 +293,11 @@ class GraphsController < ApplicationController
           target_data = nil
           completed = false
         end
-        
+
         # Group issues
         issues_by_created_on = fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
         issues_by_closed_on = fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
-                    
+
         # Set the scope of the graph
         scope_end_date = issues_by_created_on.last.first
         scope_end_date = issues_by_created_on.last.first if issues_by_closed_on.any? and issues_by_created_on.last.first > scope_end_date
@@ -305,7 +305,7 @@ class GraphsController < ApplicationController
         scope_end_date = Date.today if !completed
         line_end_date = Date.today
         line_end_date = scope_end_date if scope_end_date < line_end_date
-                    
+
         # Generate the created_on line
         created_count = 0
         created_on_line = Hash.new
@@ -315,7 +315,7 @@ class GraphsController < ApplicationController
             :data => created_on_line.sort.flatten,
             :title => l(:label_total).capitalize
         })
-        
+
         # Generate the closed_on line
         closed_count = 0
         closed_on_line = Hash.new
@@ -325,21 +325,21 @@ class GraphsController < ApplicationController
             :data => closed_on_line.sort.flatten,
             :title => l(:label_closed_issues).capitalize
         })
-        
+
         # Add the version due date marker
         graph.add_data({
             :data => [target_date.to_s, created_count],
             :title => l(:field_due_date).capitalize
         }) unless target_date.nil?
-        
-        
+
+
         # Compile the graph
         headers["Content-Type"] = "image/svg+xml"
         send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
     end
-    
+
     def burndown_graph
-    
+
         # Initialize the graph
         graph = SVG::Graph::TimeSeries.new({
             :area_fill => true,
@@ -355,23 +355,23 @@ class GraphsController < ApplicationController
             :width => 800,
             :x_label_format => "%b %d"
         })
-        
+
         # Generate the estimated - spent_time line
         spent_hours = @estimated_hours
         spent_on_line = Hash.new
         spent_on_line[@scope_start_date.to_s] = spent_hours if @scope_start_date
-        
+
         # Generate the remaining_hours line
         remaining_hours = @estimated_hours
         remaining_on_line = Hash.new
-        
+
         all_dates = @issues_by_created_on + @issues_by_closed_on + @time_entries_by_spent_on
         all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
-        all_dates.each { | key, objects | 
+        all_dates.each { | key, objects |
           objects.each { | object |
             if object.is_a? Issue
               remaining_on_line[(key-1).to_s] = remaining_hours
-              hours = object.estimated_hours.nil? ? 0 : object.estimated_hours 
+              hours = object.estimated_hours.nil? ? 0 : object.estimated_hours
               if object.closed? && key == get_closed_on_or_updated_on(object).to_date
                 remaining_hours -= remaining_hours >= hours ? hours : remaining_hours
                 remaining_on_line[key.to_s] = remaining_hours
@@ -379,37 +379,37 @@ class GraphsController < ApplicationController
            elsif object.is_a? TimeEntry
             spent_on_line[(key-1).to_s] = spent_hours
             spent_hours -= object.hours.to_f
-            spent_on_line[key.to_s] = spent_hours   
+            spent_on_line[key.to_s] = spent_hours
            end
           }
         }
-        
+
         spent_on_line[@scope_end_date.to_s] = spent_hours
         graph.add_data({
             :data => spent_on_line.sort.flatten,
             :title => l(:label_estimated_minus_spent_time).capitalize
         })
-        
+
         remaining_on_line[@scope_end_date.to_s] = remaining_hours
         graph.add_data({
           :data => remaining_on_line.sort.flatten,
           :title => l(:label_graphs_remaining_hours)
         })
-        
+
         # Add the version due date marker
         graph.add_data({
             :data => [@target_date.to_s, 0],
             :title => l(:field_due_date).capitalize
         }) unless @target_date.nil?
-        
-        
+
+
         # Compile the graph
         headers["Content-Type"] = "image/svg+xml"
         send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
     end
-    
+
 def burnup_graph
- 
+
      # Initialize the graph
      graph = SVG::Graph::TimeSeries.new({
          :area_fill => true,
@@ -425,35 +425,35 @@ def burnup_graph
          :width => 800,
          :x_label_format => "%b %d"
      })
-     
+
      # Generate the estimated - spent_time line
      spent_hours = 0
      spent_on_line = Hash.new
      spent_on_line[@scope_start_date.to_s] = 0  if @scope_start_date
-     
+
      total_hours = 0
      total_hours_line = Hash.new
-     
+
      # Generate the remaining_hours line
      completed_hours = 0
      completed_on_line = Hash.new
-     
+
      all_dates = @issues_by_created_on + @issues_by_closed_on + @time_entries_by_spent_on
      all_dates = all_dates.sort! { |x,y| x.first <=> y.first }
-     all_dates.each { | key, objects | 
+     all_dates.each { | key, objects |
        objects.each { | object |
          if object.is_a? Issue
            total_hours_line[(key-1).to_s] = total_hours
            completed_on_line[(key-1).to_s] = completed_hours
-             
+
            hours = object.estimated_hours.nil? ? 0 : object.estimated_hours
-           
+
            #make sure that if an issue is created and closed at the same time that it gets added to both lists
            if key == object.created_on.to_date
              total_hours += hours
-             total_hours_line[key.to_s] = total_hours             
+             total_hours_line[key.to_s] = total_hours
            end
-           
+
            if object.closed? && key == get_closed_on_or_updated_on(object).to_date
              completed_hours += hours
              completed_on_line[key.to_s] = completed_hours
@@ -461,47 +461,47 @@ def burnup_graph
         elsif object.is_a? TimeEntry
          spent_on_line[(key-1).to_s] = spent_hours
          spent_hours += object.hours.to_f
-         spent_on_line[key.to_s] = spent_hours   
+         spent_on_line[key.to_s] = spent_hours
         end
        }
      }
-     
+
      total_hours_line[@scope_end_date.to_s] = total_hours
      graph.add_data({
        :data => total_hours_line.sort.flatten,
        :title => l(:label_graphs_total_hours)
      })
-     
+
      completed_on_line[@scope_end_date.to_s] = completed_hours
      graph.add_data({
        :data => completed_on_line.sort.flatten,
        :title => l(:label_graphs_completed_work)
      })
-     
+
      spent_on_line[@scope_end_date.to_s] = spent_hours
      graph.add_data({
          :data => spent_on_line.sort.flatten,
          :title => l(:label_spent_time).capitalize
      })
-     
+
      # Add the version due date marker
      graph.add_data({
          :data => [@target_date.to_s, total_hours],
          :title => l(:field_due_date).capitalize
      }) unless @target_date.nil?
-     
-     
+
+
      # Compile the graph
      headers["Content-Type"] = "image/svg+xml"
      send_data(graph.burn, :type => "image/svg+xml", :disposition => "inline")
  end
-    
-    
+
+
     ############################################################################
     # Private methods
     ############################################################################
     private
-            
+
     def confirm_issues_exist
         find_optional_project
         if !@project.nil?
@@ -514,7 +514,7 @@ def burnup_graph
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-    
+
     def find_open_issues
         find_optional_project
         if !@project.nil?
@@ -527,7 +527,7 @@ def burnup_graph
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-    
+
     def find_all_issues
         find_optional_project
         if !@project.nil?
@@ -540,20 +540,22 @@ def burnup_graph
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-	
+
     def find_bug_issues
         find_optional_project
+        tracker_ids = Setting.plugin_redmine_graphs[:bug_tracker]
+
         if !@project.nil?
             ids = [@project.id]
             ids += @project.descendants.active.visible.collect(&:id)
-            @bugs= Issue.visible.find(:all, :include => [:status], :conditions => ["#{Issue.table_name}.tracker_id IN (?) AND #{Project.table_name}.id IN (?)", 1, ids])
+            @bugs= Issue.visible.find(:all, :include => [:status], :conditions => ["#{Issue.table_name}.tracker_id IN (?) AND #{Project.table_name}.id IN (?)", tracker_ids, ids])
         else
-            @bugs= Issue.visible.find(:all, :include => [:status], :conditions => ["#{Issue.table_name}.tracker_id IN (?)", 1])
+            @bugs= Issue.visible.find(:all, :include => [:status], :conditions => ["#{Issue.table_name}.tracker_id IN (?)", tracker_ids])
         end
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-    
+
     def find_optional_project
         if @version.nil?
           @project = Project.find(params[:project_id]) unless params[:project_id].blank?
@@ -562,14 +564,14 @@ def burnup_graph
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-    
+
     def find_optional_version
         @version = Version.find(params[:id]) unless params[:id].blank?
         deny_access unless @version.nil? or User.current.allowed_to?(:view_issues, @version.project)
     rescue ActiveRecord::RecordNotFound
         render_404
     end
-    
+
     def find_estimated_hours
       find_optional_project
       find_optional_version
@@ -582,7 +584,7 @@ def burnup_graph
         Project.all.each { |project| @estimated_hours += get_estimated_hours_by_project(project) }
       end
     end
-    
+
     def find_spent_hours
       find_optional_project
       find_optional_version
@@ -600,7 +602,7 @@ def burnup_graph
         @entries.each { |entry| @spent_hours += entry.hours }
       end
     end
-    
+
     def find_version_info
       if !@version.nil?
          @fixed_issues = @version.fixed_issues
@@ -617,19 +619,19 @@ def burnup_graph
          @target_date = nil
          @completed = false
        end
-       
+
       # Group issues
       @issues_by_created_on = @fixed_issues.group_by {|issue| issue.created_on.to_time.localtime.to_date }.sort
       @issues_by_closed_on = @fixed_issues.collect {|issue| issue if issue.closed? }.compact.group_by {|issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
       @time_entries_by_spent_on = @entries.group_by { |entry| entry.spent_on.to_time.localtime.to_date }.sort
-        
+
       # do not proceed if no issues are present on the project/version
       return if @issues_by_created_on.empty?
-        
+
       # Set the scope of the graph
       @scope_start_date = @issues_by_created_on.first.first
       @scope_start_date = @spent_time.first.first if @spent_time and @spent_time.any and @spent_time.first.first < @scope_start_date
-        
+
       @scope_end_date = @issues_by_created_on.last.first
       @scope_end_date = @issues_by_closed_on.last.first if @issues_by_closed_on.any? and @issues_by_closed_on.last.first > @scope_end_date
       @scope_end_date = @time_entries_by_spent_on.last.first.to_date if !@time_entries_by_spent_on.empty? && @time_entries_by_spent_on.last.first.to_date > @scope_end_date
@@ -637,7 +639,7 @@ def burnup_graph
       @line_end_date = Date.today
       @line_end_date = @scope_end_date if @scope_end_date < @line_end_date
     end
-    
+
     def get_estimated_hours_by_project(project)
       estimated_hours = 0
       ids = [project.id]
@@ -648,10 +650,17 @@ def burnup_graph
       end
       estimated_hours
     end
-    
+
     def get_closed_on_or_updated_on(object)
       return object.closed_on unless object.closed_on.nil?
       object.updated_on
     end
-    
+
+    def get_excluded_tickets_field
+      excluded_tickets_field = nil
+      if Setting.plugin_redmine_graphs[:excluded_tickets]
+        field_value = Issue.visible_custom_field_values.select { |p| p.custom_field_id == Setting.plugin_redmine_graphs[:excluded_tickets].to_i }.first
+        excluded_tickets_field = field_value.value.to_i if field_value && !field_value.value.blank?
+      end
+    end
 end

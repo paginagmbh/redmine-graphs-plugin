@@ -9,17 +9,14 @@ Updated by: [David S Anderson](https://github.com/ande3577)
 
 Report any issues to: https://github.com/ande3577/redmine-graphs-plugin/issues?state=open
 
+
 ## How to use
 
-Only tested on Redmine 2.2/2.3 and Ruby 1.9.3.  Use other versions at your own risk.
-
-*Redmine 2.2 must use 2.2_branch*
-
-NOTE: Redmine 2.0.3 has compatibility issue with Ruby 1.9.x. Please see {Defect #11290: ParseDate missing in Ruby 1.9x - Redmine}[http://www.redmine.org/issues/11290].
+Only tested on Redmine 2.5 and Ruby 2.1.*.  Use other versions at your own risk.
 
     $ cd /path/to/redmine/plugins
-    $ git clone git://github.com/dmp/redmine-graphs-plugin.git redmine_graphs
-    $ rake redmine:plugins:migrate RAILS_ENV=production 
+    $ git clone https://github.com/luis.maia/redmine-graphs-plugin.git redmine_graphs
+    $ rake redmine:plugins:migrate RAILS_ENV=production
 
 Then restart redmine.
 
@@ -51,12 +48,12 @@ Shows the number of total open vs closed bugs on a project.  Will also show the 
 
 ### Burndown
 
-Display the progress of a project relative to time spent.  Intended to be used to track a project progress 
+Display the progress of a project relative to time spent.  Intended to be used to track a project progress
 relative to an ideal schedule.
 
 * _Remaining Hours (Estimated)_: The total estimated time of all open issues (assumes that all issues begin at the project start
 date
-* _Estimated - Spent Hours_: the time spent on the project subtracted from the total estimated time.  Comparing with the remaining 
+* _Estimated - Spent Hours_: the time spent on the project subtracted from the total estimated time.  Comparing with the remaining
 hours provides a metric for measuring the accuracy of the project's time estimates and developer efficiency
 * _Due Date_: the target date of the project/version
 
@@ -64,7 +61,7 @@ hours provides a metric for measuring the accuracy of the project's time estimat
 
 ### Burnup
 
-Display the total, completed and spent time in burnup format.  This is an alternative presentation of the 
+Display the total, completed and spent time in burnup format.  This is an alternative presentation of the
 same information contained in a burndown graph.
 
 ![burnup](/img/burnup.png "Burnup")
