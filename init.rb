@@ -11,7 +11,7 @@ Redmine::Plugin.register :redmine_graphs do
   description 'This plugin provides instances of Redmine with additional graphs.'
   version '0.2.0'
   author_url 'https://github.com/bradbeattie'
-  url 'http://github.com/luis.maia/redmine-graphs-plugin'
+  url 'http://github.com/luismaia/redmine-graphs-plugin'
   requires_redmine :version_or_higher => '2.5.1' # required redmine version
 
   # include dummy variable to prevent hash from being removed if all faluse

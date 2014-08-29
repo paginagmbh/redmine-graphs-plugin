@@ -5,33 +5,33 @@
 <% end %>
 
 <div class="splitcontentleft">
-	<h3 class="icon icon-time"><%= l(:label_issues_by, :value => l(:field_created_on)) %></h3>
-	<%= render :partial => 'issues/list_simple', :locals => { :issues => @issues_by_created_on[0..9] } %>
-	<% if @issues_by_created_on.length > 0 %>
-		<p class="small">
-			<%
-				link_params = { :controller => :issues, :action => :index, :set_filter => 1, :sort_key => :created_on, :sort_order => :desc } 
-				link_params[:project_id] = @project unless @project.nil?
-			%>
-			<%= link_to l(:label_issue_view_all), link_params %>
-		</p>
-	<% end %>
+  <h3 class="icon icon-time"><%= l(:label_issues_by, :value => l(:field_created_on)) %></h3>
+  <%= render :partial => 'issues/list_simple', :locals => {:issues => @issues_by_created_on[0..9]} %>
+  <% if @issues_by_created_on.length > 0 %>
+      <p class="small">
+        <%
+           link_params = {:controller => :issues, :action => :index, :set_filter => 1, :sort_key => :created_on, :sort_order => :desc}
+           link_params[:project_id] = @project unless @project.nil?
+        %>
+        <%= link_to l(:label_issue_view_all), link_params %>
+      </p>
+  <% end %>
 </div>
 
 <div class="splitcontentright">
-	<h3 class="icon icon-comment"><%= l(:label_issues_by, :value => l(:field_updated_on)) %></h3>
-	<%= render :partial => 'issues/list_simple', :locals => { :issues => @issues_by_updated_on[0..9] } %>
-	<% if @issues_by_updated_on.length > 0 %>
-		<p class="small">
-			<%
-				link_params = { :controller => :issues, :action => :index, :set_filter => 1, :sort_key => :updated_on, :sort_order => :desc } 
-				link_params[:project_id] = @project unless @project.nil?
-			%>
-			<%= link_to l(:label_issue_view_all), link_params %>
-		</p>
-	<% end %>
+  <h3 class="icon icon-comment"><%= l(:label_issues_by, :value => l(:field_updated_on)) %></h3>
+  <%= render :partial => 'issues/list_simple', :locals => {:issues => @issues_by_updated_on[0..9]} %>
+  <% if @issues_by_updated_on.length > 0 %>
+      <p class="small">
+        <%
+           link_params = {:controller => :issues, :action => :index, :set_filter => 1, :sort_key => :updated_on, :sort_order => :desc}
+           link_params[:project_id] = @project unless @project.nil?
+        %>
+        <%= link_to l(:label_issue_view_all), link_params %>
+      </p>
+  <% end %>
 </div>
 
 <% content_for :sidebar do %>
-  <%= render :partial => 'graph_sidebar' %>
+    <%= render :partial => 'graph_sidebar' %>
 <% end %>

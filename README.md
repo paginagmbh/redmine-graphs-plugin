@@ -3,7 +3,8 @@
 This plugin provides instances of Redmine a method with additional graphs.
 
 Created by Gossamer Threads Inc. (http://www.gossamer-threads.com)
-Primary developer: Brad Beattie
+
+Author: [Brad Beattie](https://github.com/bradbeattie)
 
 Updated by: [David S Anderson](https://github.com/ande3577)
 
@@ -15,7 +16,7 @@ Report any issues to: https://github.com/ande3577/redmine-graphs-plugin/issues?s
 Only tested on Redmine 2.5 and Ruby 2.1.*.  Use other versions at your own risk.
 
     $ cd /path/to/redmine/plugins
-    $ git clone https://github.com/luis.maia/redmine-graphs-plugin.git redmine_graphs
+    $ git clone https://github.com/luismaia/redmine-graphs-plugin.git redmine_graphs
     $ rake redmine:plugins:migrate RAILS_ENV=production
 
 Then restart redmine.
