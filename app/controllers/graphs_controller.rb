@@ -233,7 +233,7 @@ class GraphsController < ApplicationController
 
     # Group issues
     bug_by_created_on = @bugs.group_by { |issue| issue.created_on.to_time.localtime.to_date }.sort
-    bug_by_closed_on = @bugs.delete_if { |issue| !issue.closed? }.group_by { |issue| issue.closed_on.to_time.localtime.to_date }.sort
+    bug_by_closed_on = @bugs.delete_if { |issue| !issue.closed? }.group_by { |issue| get_closed_on_or_updated_on(issue).to_time.localtime.to_date }.sort
 
     # Generate the created_on line
     created_count = 0
