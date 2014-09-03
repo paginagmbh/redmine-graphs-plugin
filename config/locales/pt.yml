@@ -3,7 +3,16 @@ pt:
   label_graphs_total_vs_closed_issues: Total de tarefas vs. Tarefas fechadas
   label_graphs_old_issues: Tarefas abertas antigas
   label_graphs_issue_growth: Total de tarefas ao longo do tempo
-  label_graphs_issue_status_flow: Alterações de estado recentes (em 168 horas)
-  label_graphs_assigned_to_status_flow: Alterações de atribuição recentes (em 168 horas)
+  label_graphs_bug_growth: Total de bugs ao longo do tempo
+  label_graphs_closed_bugs: Fechado
+  label_graphs_burndown: Burndown
+  label_graphs_burnup: Burnup
+  label_graphs_issue_status_flow: Alterações de estado recentes (em 7 dias)
+  label_graphs_assigned_to_status_flow: Alterações de atribuição recentes (em 7 dias)
+  label_graphs_remaining_hours: Horas Restantes (Estimativa)
+  label_estimated_minus_spent_time: Estimativa - Horas Gastas
+  label_graphs_total_hours: Total Horas (Estimativa)
+  label_graphs_completed_work: Horas Completas (Estimativa)
+  label_enabled_graphs: Activar Gráficos
   warning_no_issues: Não existem tarefas para mostrar.
   
