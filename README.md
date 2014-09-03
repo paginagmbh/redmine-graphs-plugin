@@ -13,7 +13,7 @@ Report any issues to: https://github.com/ande3577/redmine-graphs-plugin/issues?s
 
 ## How to use
 
-Only tested on Redmine 2.5 and Ruby 2.1.*.  Use other versions at your own risk.
+Only tested on Redmine 2.5 and Ruby 2.*.  Use other versions at your own risk.
 
     $ cd /path/to/redmine/plugins
     $ git clone https://github.com/luismaia/redmine-graphs-plugin.git redmine_graphs
