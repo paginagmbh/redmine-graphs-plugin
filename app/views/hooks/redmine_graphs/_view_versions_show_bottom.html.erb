@@ -1,20 +1,24 @@
-<% if @spent_hours != 0 || @estimated_hours != 0 %>
-    <% if Setting.plugin_redmine_graphs[:total_vs_closed_issues_enabled] ? true : false %>
-        <fieldset id='target_version_graph'>
-          <legend><%= l(:label_graphs_total_vs_closed_issues) %></legend>
-          <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'target_version_graph', :id => version)) %>
-        </fieldset>
-    <% end %>
-    <% if Setting.plugin_redmine_graphs[:burndown_enabled] ? true : false %>
-        <fieldset id='target_version_graph'>
-          <legend><%= l(:label_graphs_burndown) %></legend>
-          <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'burndown_graph', :id => version)) %>
-        </fieldset>
-    <% end %>
-    <% if Setting.plugin_redmine_graphs[:burnup_enabled] ? true : false %>
-        <fieldset id='target_version_graph'>
-          <legend><%= l(:label_graphs_burnup) %></legend>
-          <%= tag("embed", :width => "100%", :height => 300, :type => "image/svg+xml", :src => url_for(:controller => 'graphs', :action => 'burnup_graph', :id => version)) %>
-        </fieldset>
-    <% end %>
+<% total_vs_closed_issues_enabled = Setting.plugin_redmine_graphs[:total_vs_closed_issues_enabled] ? true : false %>
+<% burndown_enabled = Setting.plugin_redmine_graphs[:burndown_enabled] ? true : false %>
+<% burnup_enabled = Setting.plugin_redmine_graphs[:burnup_enabled] ? true : false %>
+
+<%# if @version.issues_count > 0 %>
+<% if total_vs_closed_issues_enabled %>
+    <fieldset id='target_version_graph'>
+      <legend><%= l(:label_graphs_total_vs_closed_issues) %></legend>
+      <%= render partial: 'hooks/redmine_graphs/view_versions_show_graph', locals: {version: version, action_name: 'target_version_graph'} %>
+    </fieldset>
 <% end %>
+<% if burndown_enabled %>
+    <fieldset id='target_version_graph'>
+      <legend><%= l(:label_graphs_burndown) %></legend>
+      <%= render partial: 'hooks/redmine_graphs/view_versions_show_graph', locals: {version: version, action_name: 'burndown_graph'} %>
+    </fieldset>
+<% end %>
+<% if burnup_enabled %>
+    <fieldset id='target_version_graph'>
+      <legend><%= l(:label_graphs_burnup) %></legend>
+      <%= render partial: 'hooks/redmine_graphs/view_versions_show_graph', locals: {version: version, action_name: 'burnup_graph'} %>
+    </fieldset>
+<% end %>
+<%# end %>

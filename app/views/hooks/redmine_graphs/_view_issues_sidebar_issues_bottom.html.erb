@@ -13,74 +13,74 @@
       <% if project.nil? %>
           <% if aging_issues_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_old_issues), {:controller => 'graphs', :action => 'old_issues'}) %>
+                <%= link_to(l(:label_graphs_old_issues), {controller: 'graphs', action: 'old_issues'}) %>
               </li>
           <% end %>
 
           <% if total_issues_over_time_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_issue_growth), {:controller => 'graphs', :action => 'issue_growth'}) %>
+                <%= link_to(l(:label_graphs_issue_growth), {controller: 'graphs', action: 'issue_growth'}) %>
               </li>
           <% end %>
 
           <% if total_bugs_over_time_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_bug_growth), {:controller => 'graphs', :action => 'bug_growth'}) %>
+                <%= link_to(l(:label_graphs_bug_growth), {controller: 'graphs', action: 'bug_growth'}) %>
               </li>
           <% end %>
 
           <% if  total_vs_closed_issues_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_total_vs_closed_issues), {:controller => 'graphs', :action => 'total_vs_closed', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_total_vs_closed_issues), {controller: 'graphs', action: 'total_vs_closed', project_id: project}) %>
               </li>
           <% end %>
 
           <% if  burndown_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_burndown), {:controller => 'graphs', :action => 'burndown'}) %>
+                <%= link_to(l(:label_graphs_burndown), {controller: 'graphs', action: 'burndown'}) %>
               </li>
           <% end %>
 
           <% if  burnup_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_burnup), {:controller => 'graphs', :action => 'burnup'}) %>
+                <%= link_to(l(:label_graphs_burnup), {controller: 'graphs', action: 'burnup'}) %>
               </li>
           <% end %>
 
       <% else %>
           <% if aging_issues_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_old_issues), {:controller => 'graphs', :action => 'old_issues', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_old_issues), {controller: 'graphs', action: 'old_issues', project_id: project}) %>
               </li>
           <% end %>
 
           <% if total_issues_over_time_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_issue_growth), {:controller => 'graphs', :action => 'issue_growth', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_issue_growth), {controller: 'graphs', action: 'issue_growth', project_id: project}) %>
               </li>
           <% end %>
 
           <% if total_bugs_over_time_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_bug_growth), {:controller => 'graphs', :action => 'bug_growth', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_bug_growth), {controller: 'graphs', action: 'bug_growth', project_id: project}) %>
               </li>
           <% end %>
 
           <% if  total_vs_closed_issues_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_total_vs_closed_issues), {:controller => 'graphs', :action => 'total_vs_closed', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_total_vs_closed_issues), {controller: 'graphs', action: 'total_vs_closed', project_id: project}) %>
               </li>
           <% end %>
 
           <% if  burndown_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_burndown), {:controller => 'graphs', :action => 'burndown', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_burndown), {controller: 'graphs', action: 'burndown', project_id: project}) %>
               </li>
           <% end %>
 
           <% if  burnup_enabled %>
               <li>
-                <%= link_to(l(:label_graphs_burnup), {:controller => 'graphs', :action => 'burnup', :project_id => project}) %>
+                <%= link_to(l(:label_graphs_burnup), {controller: 'graphs', action: 'burnup', project_id: project}) %>
               </li>
           <% end %>
       <% end %>
