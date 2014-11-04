@@ -2,6 +2,7 @@
 <% burndown_enabled = Setting.plugin_redmine_graphs[:burndown_enabled] ? true : false %>
 <% burnup_enabled = Setting.plugin_redmine_graphs[:burnup_enabled] ? true : false %>
 
+<% if User.current.allowed_to?(:view_graphs, @project) %>
 <%# if @version.issues_count > 0 %>
 <% if total_vs_closed_issues_enabled %>
     <fieldset id='target_version_graph'>
@@ -22,3 +23,4 @@
     </fieldset>
 <% end %>
 <%# end %>
+<% end %>

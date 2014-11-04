@@ -16,3 +16,4 @@ de:
   label_enabled_graphs: Aktivierte Graphen
   warning_no_issues: Keine Tickets vorhanden.
   label_graphs_bug_tracker: Bug-Tracker
+  permission_view_graphs: Ticket-Graphen anzeigen

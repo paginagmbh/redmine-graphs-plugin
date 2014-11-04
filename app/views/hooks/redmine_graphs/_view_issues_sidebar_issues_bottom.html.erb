@@ -5,7 +5,7 @@
 <% burndown_enabled = Setting.plugin_redmine_graphs[:burndown_enabled] ? true : false %>
 <% burnup_enabled = Setting.plugin_redmine_graphs[:burnup_enabled] ? true : false %>
 
-<% if aging_issues_enabled || total_issues_over_time_enabled || total_bugs_over_time_enabled || total_vs_closed_issues_enabled || burndown_enabled || burnup_enabled %>
+<% if User.current.allowed_to?(:view_graphs, @project) && (aging_issues_enabled || total_issues_over_time_enabled || total_bugs_over_time_enabled || total_vs_closed_issues_enabled || burndown_enabled || burnup_enabled) %>
 
     <h3><%= l(:label_graphs) %></h3>
     <ul>

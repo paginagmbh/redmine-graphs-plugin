@@ -17,4 +17,5 @@ en:
   label_graphs_completed_work: Completed Hours (Estimated)
   label_enabled_graphs: Enabled Graphs
   warning_no_issues: There are no issues to graph.
+  permission_view_graphs: Show ticket graphs
   

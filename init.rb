@@ -9,10 +9,12 @@ Redmine::Plugin.register :redmine_graphs do
   name 'Redmine Graphs plugin'
   author 'Brad Beattie'
   description 'This plugin provides instances of Redmine with additional graphs.'
-  version '0.3.0'
+  version '0.3.1'
   author_url 'https://github.com/bradbeattie'
   url 'http://github.com/luismaia/redmine-graphs-plugin'
   requires_redmine :version_or_higher => '2.5.1' # required redmine version
+
+  permission :view_graphs, {}
 
   # include dummy variable to prevent hash from being removed if all faluse
   default_settings = {
