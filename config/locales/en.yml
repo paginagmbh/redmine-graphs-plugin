@@ -8,7 +8,9 @@ en:
   label_graphs_burndown: Burndown
   label_graphs_burnup: Burnup
   label_graphs_issue_status_flow: Recent status changes (within 7 days)
+  recent_status_changes_graph: Recent status changes (within 7 days)
   label_graphs_assigned_to_status_flow: Recent assignment changes (within 7 days)
+  recent_assigned_to_changes_graph: Recent assignment changes (within 7 days)
   label_graphs_remaining_hours: Remaining Hours (Estimated)
   label_estimated_minus_spent_time: Estimated - Spent Hours
   label_graphs_total_hours: Total Hours (Estimated)
