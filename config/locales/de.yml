@@ -1,15 +1,16 @@
 de:
   label_graphs: Graphen
-  label_graphs_total_vs_closed_issues: Total Tickets vs. geschlossene Tickets
+  label_graphs_total_vs_closed_issues: Alle Tickets vs. Geschlossene Tickets
   label_graphs_old_issues: Offene alternde Tickets
-  label_graphs_issue_growth: Total Tickets
-  label_graphs_bug_growth: Total Fehler
+  label_graphs_issue_growth: Alle Tickets
+  label_graphs_bug_growth: Alle Fehler
   label_graphs_closed_bugs: Geschlossen
   label_graphs_burndown: Burndown
   label_graphs_issue_status_flow: Statusänderungen der letzten 7 Tage
   label_graphs_assigned_to_status_flow: Zuweisungsänderungen der letzten 7 Tage
-  label_graphs_remaining_hours: verbleibende geschätzte Stunden
-  label_estimated_minus_spent_time: (geschätzte-gebuchte) Stunden
-  label_graphs_completed_work: geschätzte Stunden der abgeschlossene Tickets
-  label_enabled_graphs: Enabled Graphs
+  label_graphs_remaining_hours: Verbleibende geschätzte Stunden
+  label_estimated_minus_spent_time: Geschätzte minus Gebuchte Stunden
+  label_graphs_completed_work: Geschätzte Stunden der abgeschlossene Tickets
+  label_enabled_graphs: Aktivierte Graphen
   warning_no_issues: Keine Tickets vorhanden.
+  label_graphs_bug_tracker: Bug-Tracker
